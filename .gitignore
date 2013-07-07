@@ -1,4 +1,5 @@
 *.o
 /contain
+/inject
 /pseudo
 /tags

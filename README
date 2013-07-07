@@ -3,15 +3,15 @@ Containers
 
 This package is a simple implementation of containers for Linux, making
 secure containers as easy to create and use as a traditional chroot. It
-comprises two utilities, contain and pseudo, which use the kernel support
-for user namespaces merged in Linux 3.8.
+comprises three utilities, contain, inject and pseudo, which use the kernel
+support for user namespaces merged in Linux 3.8.
 
 
 Demonstration
 -------------
 
-With contain and pseudo already installed, the demo begins in an
-unprivileged user's shell:
+With the utilities already installed, the demo begins in an unprivileged
+user's shell:
 
   $ echo $$ $UID
   21260 1000
@@ -129,6 +129,28 @@ The environment of the container init process includes "container=contain"
 so that distributions can identify when they are running under contain.
 Similarly, helper programs run with "container=contain-inside-helper" or
 "container=contain-outside-helper" set.
+
+
+inject
+------
+
+The inject utility is invoked as
+
+  inject PID [CMD [ARG]...]
+
+where PID is the process ID of a running container supervisor, and runs a
+command or shell inside the existing container. The environment, stdin,
+stdout and stderr of inject are all inherited by the command to be run.
+
+The container supervisor PID (i.e. that of contain itself) should be given
+to inject, not the PID of the descendant init process. The inject utility
+will only work if process specified has a child with "container=contain"
+in its environment, which it assumes to be the container init.
+
+Linux allows an unprivileged user to join the user namespace of any
+container started by his UID, so inject need not be installed setuid even if
+contain and pseudo are setuid root. It will refuse to run if it detects
+setuid/setgid operation.
 
 
 pseudo
