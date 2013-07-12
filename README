@@ -85,6 +85,14 @@ The contain utility is invoked as
 
   contain [OPTIONS] DIR [CMD [ARG]...]
 
+with options
+
+  -g MAP    set the container-to-host GID map
+  -i PATH   run a helper child inside the new namespaces
+  -n        share the host network unprivileged in the container
+  -o PATH   run a helper child outside the new namespaces
+  -u MAP    set the container-to-host UID map
+
 and creates a new container with DIR recursively bound as its root
 filesystem, running CMD as PID 1 within that container. If unspecified, CMD
 defaults to /bin/sh to start a shell, so to fully boot a distribution,
@@ -159,6 +167,11 @@ pseudo
 The pseudo utility is invoked as
 
   pseudo [OPTIONS] [CMD [ARG]...]
+
+with options
+
+  -g MAP    set the user namespace GID map
+  -u MAP    set the user namespace UID map
 
 and runs a command or shell as root in a new user namespace, by analogy with
 sudo which runs a command as root in the host user namespace.
