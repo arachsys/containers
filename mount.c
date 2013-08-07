@@ -10,6 +10,8 @@
 #include <sys/types.h>
 #include "contain.h"
 
+static char *root;
+
 static void bindnode(char *src, char *dst) {
   int fd;
 
@@ -19,13 +21,23 @@ static void bindnode(char *src, char *dst) {
     error(1, 0, "Failed to bind %s into new /dev filesystem", src);
 }
 
-void buildroot(char *src, char *dst, char *console, char *helper) {
+void cleanup(void) {
+  if (root) {
+    umount2(root, MNT_DETACH);
+    rmdir(root);
+  }
+}
+
+void createroot(char *src, char *console, char *helper) {
   mode_t mask;
   pid_t child;
 
-  if (mount(src, dst, NULL, MS_BIND | MS_REC, NULL) < 0)
+  root = tmpdir();
+  atexit(cleanup);
+
+  if (mount(src, root, NULL, MS_BIND | MS_REC, NULL) < 0)
     error(1, 0, "Failed to bind new root filesystem");
-  else if (chdir(dst) < 0)
+  else if (chdir(root) < 0)
     error(1, 0, "Failed to enter new root filesystem");
 
   mask = umask(0);
@@ -68,10 +80,12 @@ void buildroot(char *src, char *dst, char *console, char *helper) {
     error(1, 0, "Failed to pivot into new root filesystem");
 
   if (chdir("/dev/tmp") >= 0) {
-    while (*dst == '/')
-      dst++;
-    rmdir(dst);
+    while (*root == '/')
+      root++;
+    rmdir(root);
   }
+
+  root = NULL;
 
   if (chdir("/") < 0 || umount2("/dev/tmp", MNT_DETACH) < 0)
     error(1, 0, "Failed to detach old root filesystem");

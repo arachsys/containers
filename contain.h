@@ -11,7 +11,7 @@
 #define subpath(type) ((type) == GID ? "/etc/subgid" : "/etc/subuid")
 
 extern char *append(char **destination, const char *format, ...);
-extern void buildroot(char *src, char *dst, char *console, char *helper);
+extern void createroot(char *src, char *console, char *helper);
 extern int getconsole(void);
 extern void mountproc(void);
 extern void mountsys(void);

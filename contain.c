@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
   setuid(0);
 
   master = getconsole();
-  buildroot(argv[optind], tmpdir(), ptsname(master), inside);
+  createroot(argv[optind], ptsname(master), inside);
 
   unshare(CLONE_NEWPID);
   switch (child = fork()) {
