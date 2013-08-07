@@ -1,0 +1,48 @@
+Shutting down or killing a container
+------------------------------------
+
+From the host, the inject utility can be used to run an appropriate command
+within the container to start a graceful shut down. For example
+
+  inject PID /bin/halt
+
+To immediately kill a container and all its processes, it is sufficient to
+send the init process a SIGKILL from the host using
+
+  pkill -KILL -P PID
+
+where PID is the process ID of a running container supervisor. It is very
+important not to SIGKILL the container supervisor itself or the container
+will be orphaned, continuing to run unsupervised as a child of the host
+init.
+
+
+Using cgroups to limit memory and CPU-share available to a container
+--------------------------------------------------------------------
+
+If cgroup support including memcg and memcg-swap is compiled into the kernel
+and the cgroup filesystem is mounted with the cpu and memory controllers
+enabled, it is straightforward to apply memory and CPU-share limits to a
+container as it is started. For example, the shell script
+
+  #!/bin/sh -e
+  mkdir /sys/fs/cgroup/mycontainer
+  echo $$ >/sys/fs/cgroup/mycontainer/tasks
+  echo 2G >/sys/fs/cgroup/mycontainer/memory.limit_in_bytes
+  echo 2G >/sys/fs/cgroup/mycontainer/memory.memsw.limit_in_bytes
+  echo 1000 >sys/fs/cgroup/mycontainer/cpu.shares
+  exec contain [...]
+
+applies a limit of 2GB virtual memory and a CPU-share of 1000 before
+starting the container. It might also be useful to apply a
+memory.kmem.limit_in_bytes setting to prevent a container from using
+excessive amounts of kernel memory.
+
+Note that to set the virtual memory limit in memory.memsw.limit_in_bytes, it
+is first necessary to set a smaller or equal physical memory limit in
+memory.limit_in_bytes.
+
+When a container lives inside a memory cgroup, memory.memsw.usage_in_bytes
+gives a measure of the total virtual memory in use by the container, and
+memory.usage_in_bytes measures its physical memory footprint. The accounting
+policy is explained in linux/kernel/Documentation/cgroups/memory.txt.
