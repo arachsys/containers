@@ -53,8 +53,8 @@ void join(pid_t pid, char *type) {
     error(1, 0, "PID %u does not belong to you", pid);
   }
 
-  if (syscall(__NR_setns, fd, 0) < 0)
-    error(1, 0, "Failed to join %s namespace", type);
+  if (syscall(__NR_setns, fd, 0) < 0 && strcmp(type, "user") == 0)
+    error(1, 0, "Failed to join user namespace");
 
   close(fd);
   free(path);
@@ -115,6 +115,7 @@ int main(int argc, char **argv) {
     error(1, 0, "PID %u is not a container supervisor", parent);
 
   join(child, "ipc");
+  join(child, "net");
   join(child, "pid");
   join(child, "uts");
   join(child, "mnt");
