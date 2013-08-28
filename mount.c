@@ -70,7 +70,7 @@ void createroot(char *src, char *console, char *helper) {
         error(1, errno, "fork");
       case 0:
         putenv("container=contain-inside-helper");
-        execlp(helper, helper, NULL);
+        execlp(SHELL, SHELL, "-c", helper, NULL);
         error(1, errno, "exec %s", helper);
       default:
         waitforexit(child);

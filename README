@@ -88,9 +88,9 @@ The contain utility is invoked as
 with options
 
   -g MAP    set the container-to-host GID map
-  -i PATH   run a helper child inside the new namespaces
+  -i CMD    run a helper child inside the new namespaces
   -n        share the host network unprivileged in the container
-  -o PATH   run a helper child outside the new namespaces
+  -o CMD    run a helper child outside the new namespaces
   -u MAP    set the container-to-host UID map
 
 and creates a new container with DIR recursively bound as its root

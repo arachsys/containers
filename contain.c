@@ -19,9 +19,9 @@ void usage(char *progname) {
 Usage: %s [OPTIONS] DIR [CMD [ARG]...]\n\
 Options:\n\
   -g MAP    set the container-to-host GID map\n\
-  -i PATH   run a helper child inside the new namespaces\n\
+  -i CMD    run a helper child inside the new namespaces\n\
   -n        share the host network unprivileged in the container\n\
-  -o PATH   run a helper child outside the new namespaces\n\
+  -o CMD    run a helper child outside the new namespaces\n\
   -u MAP    set the container-to-host UID map\n\
 GID and UID maps are specified as START:LOWER:COUNT[,START:LOWER:COUNT]...\n\
 ", progname);
@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
         if (setgid(getgid()) < 0 || setuid(getuid()) < 0)
           error(1, 0, "Failed to drop privileges");
         putenv("container=contain-outside-helper");
-        execlp(outside, outside, NULL);
+        execlp(SHELL, SHELL, "-c", outside, NULL);
         error(1, errno, "exec %s", outside);
       }
 

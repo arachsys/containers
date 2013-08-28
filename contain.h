@@ -4,6 +4,7 @@
 #define GID 0
 #define UID 1
 #define INVALID ((unsigned) -1)
+#define SHELL "/bin/sh"
 
 #define getid(type) ((unsigned) ((type) == GID ? getgid() : getuid()))
 #define idfile(type) ((type) == GID ? "gid_map" : "uid_map")
