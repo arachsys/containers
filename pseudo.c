@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
   else if (getenv("SHELL"))
     execl(getenv("SHELL"), getenv("SHELL"), NULL);
   else
-    execl("/bin/sh", "/bin/sh", NULL);
+    execl(SHELL, SHELL, NULL);
 
   error(1, errno, "exec");
   return EXIT_FAILURE;

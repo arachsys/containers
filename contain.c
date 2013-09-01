@@ -114,7 +114,7 @@ int main(int argc, char **argv) {
       if (argv[optind + 1])
         execv(argv[optind + 1], argv + optind + 1);
       else
-        execl("/bin/sh", "/bin/sh", NULL);
+        execl(SHELL, SHELL, NULL);
       error(1, errno, "exec");
   }
 
