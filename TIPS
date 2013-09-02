@@ -46,3 +46,26 @@ When a container lives inside a memory cgroup, memory.memsw.usage_in_bytes
 gives a measure of the total virtual memory in use by the container, and
 memory.usage_in_bytes measures its physical memory footprint. The accounting
 policy is explained in linux/kernel/Documentation/cgroups/memory.txt.
+
+
+Troubleshooting
+---------------
+
+The contain/psuedo error message 'Failed to unshare user namespace: Invalid
+argument' typically means that your kernel is not compiled with support for
+user namespaces, i.e. CONFIG_USER_NS is not set. The contain tool will also
+die with a similar message referring to one of the other required namespaces
+if support for that is not available in the kernel.
+
+To run these tools you need to be running Linux 3.8 or later with
+
+  CONFIG_UTS_NS=y
+  CONFIG_IPC_NS=y
+  CONFIG_USER_NS=y
+  CONFIG_PID_NS=y
+  CONFIG_NET_NS=y
+
+set in the kernel build config. Note that as of Linux 3.11, CONFIG_XFS_FS
+still conflicts with CONFIG_USER_NS, so you cannot yet use these tools on a
+machine which has XFS support compiled either into the kernel or as a
+module.
