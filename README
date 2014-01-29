@@ -64,7 +64,7 @@ or configuring the network stack:
   # ping -w 1 1.2.3.4 &>/dev/null && echo up || echo down
   up
   # ip link add type veth && ip link show
-  1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT 
+  1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT
       link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
   2: veth0: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN mode DEFAULT qlen 1000
       link/ether 3a:0c:96:36:2d:ff brd ff:ff:ff:ff:ff:ff
@@ -87,6 +87,7 @@ The contain utility is invoked as
 
 with options
 
+  -c        disable console emulation in the container
   -g MAP    set the container-to-host GID map
   -i CMD    run a helper child inside the new namespaces
   -n        share the host network unprivileged in the container
@@ -111,7 +112,9 @@ can be used to override the defaults.
 
 The container console is a host pseudo-terminal bound at /dev/console in the
 new /dev filesystem: stdin and stdout are copied to/from this, and it serves
-as stdin, stdout and stderr for the container init process.
+as stdin, stdout and stderr for the container init process. This console
+emulation can be disabled using the -c option: if -c is used, init is run
+directly with the stdin, stdout and stderr of the contain command.
 
 Containers are usually isolated in their own network namespace, with a
 distinct set of network interfaces from the host. By specifying the -n

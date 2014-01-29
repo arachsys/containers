@@ -18,6 +18,7 @@ void usage(char *progname) {
   fprintf(stderr, "\
 Usage: %s [OPTIONS] DIR [CMD [ARG]...]\n\
 Options:\n\
+  -c        disable console emulation in the container\n\
   -g MAP    set the container-to-host GID map\n\
   -i CMD    run a helper child inside the new namespaces\n\
   -n        share the host network unprivileged in the container\n\
@@ -30,11 +31,14 @@ GID and UID maps are specified as START:LOWER:COUNT[,START:LOWER:COUNT]...\n\
 
 int main(int argc, char **argv) {
   char *gidmap = NULL, *inside = NULL, *outside = NULL, *uidmap = NULL;
-  int hostnet = 0, master, option;
+  int hostnet = 0, master, option, stdio = 0;
   pid_t child, parent;
 
-  while ((option = getopt(argc, argv, "+:g:i:no:u:")) > 0)
+  while ((option = getopt(argc, argv, "+:cg:i:no:u:")) > 0)
     switch (option) {
+      case 'c':
+        stdio++;
+        break;
       case 'g':
         gidmap = optarg;
         break;
@@ -94,8 +98,8 @@ int main(int argc, char **argv) {
   setgroups(0, NULL);
   setuid(0);
 
-  master = getconsole();
-  createroot(argv[optind], ptsname(master), inside);
+  master = stdio ? -1 : getconsole();
+  createroot(argv[optind], master, inside);
 
   unshare(CLONE_NEWPID);
   switch (child = fork()) {
@@ -106,8 +110,10 @@ int main(int argc, char **argv) {
       mountsys();
       enterroot();
 
-      close(master);
-      setconsole("/dev/console");
+      if (master >= 0) {
+        close(master);
+        setconsole("/dev/console");
+      }
 
       clearenv();
       putenv("container=contain");

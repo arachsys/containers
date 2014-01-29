@@ -79,6 +79,12 @@ int supervise(pid_t child, int console) {
   ssize_t count, length, offset;
   struct pollfd fds[3];
 
+  if (console < 0) {
+    if (waitpid(child, &status, 0) < 0)
+      error(1, errno, "waitpid");
+    return WIFEXITED(status) ? WEXITSTATUS(status) : EXIT_FAILURE;
+  }
+
   sigemptyset(&mask);
   sigaddset(&mask, SIGCHLD);
   sigprocmask(SIG_BLOCK, &mask, NULL);

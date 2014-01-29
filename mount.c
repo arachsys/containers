@@ -28,7 +28,7 @@ void cleanup(void) {
   }
 }
 
-void createroot(char *src, char *console, char *helper) {
+void createroot(char *src, int console, char *helper) {
   mode_t mask;
   pid_t child;
 
@@ -54,8 +54,8 @@ void createroot(char *src, char *console, char *helper) {
   mkdir("sys" , 0755);
   umask(mask);
 
-  if (console)
-    bindnode(console, "dev/console");
+  if (console >= 0)
+    bindnode(ptsname(console), "dev/console");
   bindnode("/dev/full", "dev/full");
   bindnode("/dev/null", "dev/null");
   bindnode("/dev/random", "dev/random");
