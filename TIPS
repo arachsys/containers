@@ -65,7 +65,15 @@ To run these tools you need to be running Linux 3.8 or later with
   CONFIG_PID_NS=y
   CONFIG_NET_NS=y
 
-set in the kernel build config. Note that as of Linux 3.11, CONFIG_XFS_FS
-still conflicts with CONFIG_USER_NS, so you cannot yet use these tools on a
-machine which has XFS support compiled either into the kernel or as a
-module.
+set in the kernel build config. Note that before Linux 3.12, CONFIG_XFS_FS
+conflicted with CONFIG_USER_NS, so these tools could not be used where XFS
+support was compiled either into the kernel or as a module.
+
+Linux 3.12 introduced tighter restrictions on mounting proc and sysfs, which
+broke older versions of contain. To comply with these new rules, contain
+now ensures that procfs and sysfs are mounted in the new mount namespace
+before pivoting into the container and detaching the host root.
+
+A bug in Linux 3.12 will prevent contain from mounting /proc in a container
+if binfmt_misc is mounted on /proc/sys/fs/binfmt_misc in the host
+filesystem. This was fixed in Linux 3.13.

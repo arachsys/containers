@@ -102,11 +102,12 @@ int main(int argc, char **argv) {
     case -1:
       error(1, errno, "fork");
     case 0:
-      close(master);
-      setconsole("/dev/console");
-
       mountproc();
       mountsys();
+      enterroot();
+
+      close(master);
+      setconsole("/dev/console");
 
       clearenv();
       putenv("container=contain");

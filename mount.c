@@ -75,7 +75,9 @@ void createroot(char *src, char *console, char *helper) {
       default:
         waitforexit(child);
     }
+}
 
+void enterroot(void) {
   if (syscall(__NR_pivot_root, ".", "dev/tmp") < 0)
     error(1, 0, "Failed to pivot into new root filesystem");
 
