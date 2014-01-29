@@ -138,8 +138,6 @@ namespace.
 
 The environment of the container init process includes "container=contain"
 so that distributions can identify when they are running under contain.
-Similarly, helper programs run with "container=contain-inside-helper" or
-"container=contain-outside-helper" set.
 
 
 inject

@@ -69,7 +69,6 @@ void createroot(char *src, int console, char *helper) {
       case -1:
         error(1, errno, "fork");
       case 0:
-        putenv("container=contain-inside-helper");
         execlp(SHELL, SHELL, "-c", helper, NULL);
         error(1, errno, "exec %s", helper);
       default:

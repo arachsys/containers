@@ -73,7 +73,6 @@ int main(int argc, char **argv) {
       if (outside) {
         if (setgid(getgid()) < 0 || setuid(getuid()) < 0)
           error(1, 0, "Failed to drop privileges");
-        putenv("container=contain-outside-helper");
         execlp(SHELL, SHELL, "-c", outside, NULL);
         error(1, errno, "exec %s", outside);
       }
