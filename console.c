@@ -135,7 +135,7 @@ int supervise(pid_t child, int console) {
             if (errno != EAGAIN && errno != EINTR)
               error(1, errno, "write");
       } else {
-        fds[0].events = 0;
+        fds[1].events = 0;
       }
     }
 
