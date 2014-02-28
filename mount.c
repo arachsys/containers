@@ -50,8 +50,6 @@ void createroot(char *src, int console, char *helper) {
     error(1, 0, "Failed to mount /dev/pts in new root filesystem");
 
   mkdir("dev/tmp", 0755);
-  mkdir("proc" , 0755);
-  mkdir("sys" , 0755);
   umask(mask);
 
   if (console >= 0)
@@ -95,11 +93,23 @@ void enterroot(void) {
 }
 
 void mountproc(void) {
+  mode_t mask;
+
+  mask = umask(0);
+  mkdir("proc" , 0755);
+  umask(mask);
+
   if (mount("proc", "proc", "proc", 0, NULL) < 0)
     error(1, 0, "Failed to mount /proc in new root filesystem");
 }
 
 void mountsys(void) {
+  mode_t mask;
+
+  mask = umask(0);
+  mkdir("sys" , 0755);
+  umask(mask);
+
   if (mount("sysfs", "sys", "sysfs", 0, NULL) < 0)
     error(1, 0, "Failed to mount /sys in new root filesystem");
 }

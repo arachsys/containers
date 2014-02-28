@@ -106,7 +106,8 @@ int main(int argc, char **argv) {
       error(1, errno, "fork");
     case 0:
       mountproc();
-      mountsys();
+      if (!hostnet)
+        mountsys();
       enterroot();
 
       if (master >= 0) {
