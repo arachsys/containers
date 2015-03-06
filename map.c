@@ -197,6 +197,8 @@ void writemap(pid_t pid, int type, char *map) {
   while ((map = mapitem(map, &first, &lower, &count)))
     append(&text, "%u %u %u\n", first, lower, count);
 
+  if (type == GID)
+    procsetgroups(pid, "deny");
   path = string("/proc/%d/%s", pid, idfile(type));
   if ((fd = open(path, O_WRONLY)) < 0)
     error(1, 0, "Failed to set container %s map", idname(type));

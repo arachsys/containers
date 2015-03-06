@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include "contain.h"
@@ -68,4 +70,18 @@ void waitforstop(pid_t child) {
     error(1, errno, "waitpid");
   if (!WIFSTOPPED(status))
     exit(WEXITSTATUS(status));
+}
+
+void procsetgroups(pid_t parent, const char *action) {
+  char *path;
+  int fd;
+
+  path = string("/proc/%d/setgroups", parent);
+  if ((fd = open(path, O_WRONLY)) < 0)
+    error(0, 0, "Unable to open container setgroups file");
+  else if (write(fd, action, strlen(action)) != (ssize_t) strlen(action))
+    error(1, 0, "Failed to write container setgroups");
+  if (fd)
+    close(fd);
+  free(path);
 }
