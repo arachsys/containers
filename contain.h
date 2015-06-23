@@ -13,6 +13,7 @@
 
 extern char *append(char **destination, const char *format, ...);
 extern void createroot(char *src, int console, char *helper);
+extern void denysetgroups(pid_t pid);
 extern void enterroot(void);
 extern int getconsole(void);
 extern void mountproc(void);

@@ -241,9 +241,9 @@ only map container UID/GIDs onto the host UID/GID of that user. The
 resulting container is not very useful as it has just a single user and
 group available. (Typically only root is mapped in the container.)
 
-However, contain and pseudo can also safely be installed setuid root, and in
-this case, unprivileged users can also map onto ranges of UIDs/GIDs that
-have been delegated for their use in /etc/subuid and /etc/subgid.
+However, contain and pseudo can also be installed setuid root, and in this
+case, unprivileged users can also map onto ranges of UIDs/GIDs that have
+been delegated for their use in /etc/subuid and /etc/subgid.
 
 The format of these files is similar to /etc/passwd, /etc/group and
 /etc/shadow. Each line specifies an additional range of UIDs/GIDs allocated
@@ -263,6 +263,19 @@ proposed patches against the standard GNU/Linux Shadow package which add
 support for creating and updating these files in this format; they are
 likely to become a standard way to delegate sub-users and sub-groups.
 
+Linux 3.19 and later do not allow unprivileged processes to write a GID map
+unless the setgroups() call has been permanently disabled by writing "deny"
+to /proc/PID/setgroups. This is a fix for CVE-2014-8989 which applied to
+strangely-configured systems where group membership implies more restricted
+permissions rather than supplementary permissions.
+
+As a result, when run non-setuid by an unprivileged user, contain and pseudo
+must disable setgroups() in the container. Conversely, when installed setuid
+root, they will use their privilege to bypass this kernel restriction,
+resulting in fully-functional containers which still support setgroups().
+However, this also means that they can be used to bypass restrictions
+implemented by group membership.
+
 
 Building and installing
 -----------------------
@@ -273,6 +286,11 @@ Run 'make', then 'make install' as root to install both binaries setuid root
 in /bin. Alternatively, you can set DESTDIR and/or BINDIR to install in a
 different location, or strip and copy the compiled binaries into the correct
 place manually.
+
+Note that setuid contain and pseudo effectively enable unprivileged users to
+to drop supplementary group memberships using setgroups(). Consequently,
+they should NOT be installed setuid root on systems where group membership
+implies more restricted permissions rather than supplementary permissions.
 
 These utilities were developed on GNU/Linux and are not portable to other
 platforms as they rely on Linux-specific facilities such as namespaces.

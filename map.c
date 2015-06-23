@@ -11,6 +11,19 @@
 #include <unistd.h>
 #include "contain.h"
 
+void denysetgroups(pid_t pid) {
+  char *path, *text = "deny";
+  int fd;
+
+  path = string("/proc/%d/setgroups", pid);
+  if ((fd = open(path, O_WRONLY)) < 0)
+    error(1, 0, "Failed to disable setgroups() in container");
+  else if (write(fd, text, strlen(text)) != (ssize_t) strlen(text))
+    error(1, 0, "Failed to disable setgroups() in container");
+  close(fd);
+  free(path);
+}
+
 static char *getmap(pid_t pid, int type) {
   char *line = NULL, *result = NULL, *path;
   size_t size;
