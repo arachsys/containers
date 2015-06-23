@@ -203,6 +203,7 @@ void writemap(pid_t pid, int type, char *map) {
   else if (write(fd, text, strlen(text)) != (ssize_t) strlen(text))
     error(1, 0, "Failed to set container %s map", idname(type));
 
+  close(fd);
   free(path);
   free(text);
 }
