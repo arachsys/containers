@@ -69,6 +69,13 @@ set in the kernel build config. Note that before Linux 3.12, CONFIG_XFS_FS
 conflicted with CONFIG_USER_NS, so these tools could not be used where XFS
 support was compiled either into the kernel or as a module.
 
+The contain tool will fail to mount /dev/pts unless
+
+  CONFIG_DEVPTS_MULTIPLE_INSTANCES=y
+
+is set in the kernel build config. Both container and host /dev/pts must be
+mounted with -o newinstance, with /dev/ptmx symlinked to pts/ptmx.
+
 Linux 3.12 introduced tighter restrictions on mounting proc and sysfs, which
 broke older versions of contain. To comply with these new rules, contain
 now ensures that procfs and sysfs are mounted in the new mount namespace
@@ -77,3 +84,10 @@ before pivoting into the container and detaching the host root.
 A bug in Linux 3.12 will prevent contain from mounting /proc in a container
 if binfmt_misc is mounted on /proc/sys/fs/binfmt_misc in the host
 filesystem. This was fixed in Linux 3.13.
+
+Linux 3.19 introduced restrictions on writing a user namespace GID map as an
+unprivileged user unless setgroups() has been permanently disabled, which
+broke older versions of contain. Run non-setuid and unprivileged, contain
+and pseudo must now disable setgroups() to create containers, but if they
+are installed setuid, they will bypass this kernel restriction and leave
+setgroups() enabled in the resulting containers.
