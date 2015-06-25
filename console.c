@@ -111,7 +111,7 @@ int supervise(pid_t child, int console) {
         if (errno != EAGAIN && errno != EINTR)
           error(1, errno, "poll");
 
-    if (fds[0].revents & POLLIN) {
+    if (fds[0].revents & (POLLIN | POLLHUP)) {
       while ((length = read(console, buffer, sizeof(buffer))) < 0)
         if (errno != EAGAIN && errno != EINTR)
           error(1, errno, "read");
@@ -125,7 +125,7 @@ int supervise(pid_t child, int console) {
       }
     }
 
-    if (fds[1].revents & POLLIN) {
+    if (fds[1].revents & (POLLIN | POLLHUP)) {
       while ((length = read(STDIN_FILENO, buffer, sizeof(buffer))) < 0)
         if (errno != EAGAIN && errno != EINTR)
           error(1, errno, "read");
