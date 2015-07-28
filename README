@@ -195,6 +195,43 @@ image is untarred under pseudo so that files are written into the filesystem
 with UIDs and GIDs mapped for the container rather than unmapped as on the
 host.
 
+list-containers
+---------------
+
+The list-containers program will list active containers (on the host).
+
+Invoked as:
+
+  list-containers [OPTIONS]
+
+with options
+ -b, --bare      print only the PID of the container,
+                 without header or information about the init processs.
+ -f, --fail-if-missing
+                 exit with error if no containers found
+                 (useful for autmation)
+
+Example:
+When starting a container with:
+
+  contain /tmp/foo/ /bin/sh
+
+Running list-containers will print:
+
+  PID    init-pid(1)  init-cmd   root-dir
+  458    10468        /bin/sh    /tmp/foo
+
+The PID of the container (458) can be used with 'inject'.
+The contained init process (/bin/sh) has PID 1 inside the container,
+and PID 10468 on the host.
+
+Using '-f' and '-b' is useful for automation. If you expect
+one container to be running, use the following:
+
+  CID=$(list-containers -fb) || exit
+  inject "$CID" /bin/echo hello world
+
+
 
 User and group mappings
 -----------------------
