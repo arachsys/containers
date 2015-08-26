@@ -117,12 +117,12 @@ int supervise(pid_t child, int console) {
 
       while ((length = read(console, buffer, sizeof(buffer))) < 0)
         if (errno != EAGAIN && errno != EINTR)
-          error(1, errno, "read");
+          error(1, errno, "read(console)");
       if (length > 0) {
         for (offset = 0; length > 0; offset += count, length -= count)
           while ((count = write(STDOUT_FILENO, buffer + offset, length)) < 0)
             if (errno != EAGAIN && errno != EINTR)
-              error(1, errno, "write");
+              error(1, errno, "write(stdout)");
       } else {
         fds[0].events = 0;
       }
@@ -131,12 +131,12 @@ int supervise(pid_t child, int console) {
     if (fds[1].revents & (POLLIN | POLLHUP)) {
       while ((length = read(STDIN_FILENO, buffer, sizeof(buffer))) < 0)
         if (errno != EAGAIN && errno != EINTR)
-          error(1, errno, "read");
+          error(1, errno, "read(stdin)");
       if (length > 0) {
         for (offset = 0; length > 0; offset += count, length -= count)
           while ((count = write(console, buffer + offset, length)) < 0)
             if (errno != EAGAIN && errno != EINTR)
-              error(1, errno, "write");
+              error(1, errno, "write(console)");
       } else {
         fds[1].events = 0;
       }
@@ -145,7 +145,7 @@ int supervise(pid_t child, int console) {
     if (fds[2].revents & POLLIN) {
       while (read(signals, buffer, sizeof(buffer)) < 0)
         if (errno != EAGAIN && errno != EINTR)
-          error(1, errno, "read");
+          error(1, errno, "read(signals)");
       if (waitpid(child, &status, WNOHANG) > 0)
         if (WIFEXITED(status) || WIFSIGNALED(status))
           break;
