@@ -27,7 +27,7 @@ int getconsole(void) {
   return master;
 }
 
-static void rawmode() {
+static void rawmode(void) {
   struct termios termios;
 
   if (!isatty(STDIN_FILENO))
@@ -38,12 +38,12 @@ static void rawmode() {
   tcsetattr(STDIN_FILENO, TCSANOW, &termios);
 }
 
-static void restoremode() {
+static void restoremode(void) {
   if (isatty(STDIN_FILENO))
     tcsetattr(STDIN_FILENO, TCSANOW, &saved);
 }
 
-static void savemode() {
+static void savemode(void) {
   if (isatty(STDIN_FILENO) && tcgetattr(STDIN_FILENO, &saved) < 0)
     error(1, errno, "tcgetattr");
 }
