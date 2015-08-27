@@ -161,5 +161,15 @@ int supervise(pid_t child, int console) {
 
   close(signals);
   close(slave);
+
+  while ((length = read(console, buffer, sizeof(buffer)))) {
+    if (length < 0 && errno != EAGAIN && errno != EINTR)
+      break;
+    for (offset = 0; length > 0; offset += count, length -= count)
+      while ((count = write(STDOUT_FILENO, buffer + offset, length)) < 0)
+        if (errno != EAGAIN && errno != EINTR)
+          error(1, errno, "write");
+  }
+
   return WIFEXITED(status) ? WEXITSTATUS(status) : EXIT_FAILURE;
 }
