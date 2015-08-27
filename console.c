@@ -74,7 +74,7 @@ void setconsole(char *name) {
 
 int supervise(pid_t child, int console) {
   char buffer[PIPE_BUF];
-  int signals, status;
+  int signals, slave, status;
   sigset_t mask;
   ssize_t count, length, offset;
   struct pollfd fds[3];
@@ -99,6 +99,8 @@ int supervise(pid_t child, int console) {
   atexit(restoremode);
   rawmode();
 
+  slave = open(ptsname(console), O_RDWR);
+
   fds[0].fd = console;
   fds[0].events = POLLIN;
   fds[1].fd = STDIN_FILENO;
@@ -111,36 +113,29 @@ int supervise(pid_t child, int console) {
         if (errno != EAGAIN && errno != EINTR)
           error(1, errno, "poll");
 
-    if (fds[0].revents & (POLLIN | POLLHUP)) {
-      while ((length = read(console, buffer, sizeof(buffer))) < 0)
+    if (fds[0].revents & POLLIN) {
+      if ((length = read(console, buffer, sizeof(buffer))) < 0)
         if (errno != EAGAIN && errno != EINTR)
           error(1, errno, "read");
-      if (length > 0) {
-        for (offset = 0; length > 0; offset += count, length -= count)
-          while ((count = write(STDOUT_FILENO, buffer + offset, length)) < 0)
-            if (errno != EAGAIN && errno != EINTR)
-              error(1, errno, "write");
-      } else {
-        fds[0].events = 0;
-      }
+      for (offset = 0; length > 0; offset += count, length -= count)
+        while ((count = write(STDOUT_FILENO, buffer + offset, length)) < 0)
+          if (errno != EAGAIN && errno != EINTR)
+            error(1, errno, "write");
     }
 
-    if (fds[1].revents & (POLLIN | POLLHUP)) {
-      while ((length = read(STDIN_FILENO, buffer, sizeof(buffer))) < 0)
-        if (errno != EAGAIN && errno != EINTR)
-          error(1, errno, "read");
-      if (length > 0) {
-        for (offset = 0; length > 0; offset += count, length -= count)
-          while ((count = write(console, buffer + offset, length)) < 0)
-            if (errno != EAGAIN && errno != EINTR)
-              error(1, errno, "write");
-      } else {
+    if (fds[1].revents & (POLLHUP | POLLIN)) {
+      if ((length = read(STDIN_FILENO, buffer, sizeof(buffer))) == 0)
         fds[1].events = 0;
-      }
+      else if (length < 0 && errno != EAGAIN && errno != EINTR)
+        error(1, errno, "read");
+      for (offset = 0; length > 0; offset += count, length -= count)
+        while ((count = write(console, buffer + offset, length)) < 0)
+          if (errno != EAGAIN && errno != EINTR)
+            error(1, errno, "write");
     }
 
     if (fds[2].revents & POLLIN) {
-      while (read(signals, buffer, sizeof(buffer)) < 0)
+      if (read(signals, buffer, sizeof(buffer)) < 0)
         if (errno != EAGAIN && errno != EINTR)
           error(1, errno, "read");
       if (waitpid(child, &status, WNOHANG) > 0)
@@ -150,5 +145,6 @@ int supervise(pid_t child, int console) {
   }
 
   close(signals);
+  close(slave);
   return WIFEXITED(status) ? WEXITSTATUS(status) : EXIT_FAILURE;
 }
