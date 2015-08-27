@@ -18,7 +18,22 @@
 static struct termios saved;
 
 int getconsole(void) {
-  int master;
+  int master, null;
+
+  if ((null = open("/dev/null", O_RDWR)) < 0)
+    error(1, 0, "Failed to open /dev/null");
+
+  if (fcntl(STDIN_FILENO, F_GETFD) < 0)
+    dup2(null, STDIN_FILENO);
+  if (fcntl(STDOUT_FILENO, F_GETFD) < 0)
+    dup2(null, STDOUT_FILENO);
+  if (fcntl(STDERR_FILENO, F_GETFD) < 0)
+    dup2(null, STDERR_FILENO);
+
+  if (null != STDIN_FILENO)
+    if (null != STDOUT_FILENO)
+      if (null != STDERR_FILENO)
+        close(null);
 
   if ((master = posix_openpt(O_RDWR | O_NOCTTY)) < 0)
     error(1, 0, "Failed to allocate a console pseudo-terminal");
