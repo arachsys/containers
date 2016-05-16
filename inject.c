@@ -47,16 +47,16 @@ void join(pid_t pid, char *type) {
 
   path = string("/proc/%u/ns/%s", pid, type);
 
-  if ((fd = open(path, O_RDONLY)) < 0) {
-    if (errno == ENOENT)
-      error(1, 0, "PID %u not found", pid);
+  if ((fd = open(path, O_RDONLY)) >= 0) {
+    if (syscall(__NR_setns, fd, 0) < 0 && strcmp(type, "user") == 0)
+      error(1, 0, "Failed to join user namespace");
+    close(fd);
+  } else if (errno != ENOENT) {
     error(1, 0, "PID %u does not belong to you", pid);
+  } else if (strcmp(type, "user") == 0) {
+    error(1, 0, "PID %u not found or user namespace unavailable", pid);
   }
 
-  if (syscall(__NR_setns, fd, 0) < 0 && strcmp(type, "user") == 0)
-    error(1, 0, "Failed to join user namespace");
-
-  close(fd);
   free(path);
 }
 
@@ -114,6 +114,7 @@ int main(int argc, char **argv) {
   if (child < 0)
     error(1, 0, "PID %u is not a container supervisor", parent);
 
+  join(child, "cgroup");
   join(child, "ipc");
   join(child, "net");
   join(child, "pid");

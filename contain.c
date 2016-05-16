@@ -10,6 +10,7 @@
 #include <string.h>
 #include <sysexits.h>
 #include <unistd.h>
+#include <linux/sched.h>
 #include <sys/syscall.h>
 #include <sys/types.h>
 #include "contain.h"
@@ -85,11 +86,25 @@ int main(int argc, char **argv) {
   if (setgid(getgid()) < 0 || setuid(getuid()) < 0)
     error(1, 0, "Failed to drop privileges");
 
-  if (unshare(CLONE_NEWIPC | CLONE_NEWNS | CLONE_NEWUSER | CLONE_NEWUTS) < 0)
-    error(1, 0, "Failed to unshare namespaces");
+  if (unshare(CLONE_NEWUSER) < 0)
+    error(1, 0, "Failed to unshare user namespace");
+
+#ifdef CLONE_NEWCGROUP
+  if (unshare(CLONE_NEWCGROUP) < 0)
+    error(1, 0, "Failed to unshare cgroup namespace");
+#endif
+
+  if (unshare(CLONE_NEWIPC) < 0)
+    error(1, 0, "Failed to unshare IPC namespace");
 
   if (!hostnet && unshare(CLONE_NEWNET) < 0)
-      error(1, 0, "Failed to unshare network namespace");
+    error(1, 0, "Failed to unshare network namespace");
+
+  if (unshare(CLONE_NEWNS) < 0)
+    error(1, 0, "Failed to unshare mount namespace");
+
+  if (unshare(CLONE_NEWUTS) < 0)
+    error(1, 0, "Failed to unshare UTS namespace");
 
   waitforstop(child);
   kill(child, SIGCONT);

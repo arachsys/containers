@@ -112,4 +112,5 @@ void mountsys(void) {
 
   if (mount("sysfs", "sys", "sysfs", 0, NULL) < 0)
     error(1, 0, "Failed to mount /sys in new root filesystem");
+  mount("cgroup2", "sys/fs/cgroup", "cgroup2", 0, NULL);
 }

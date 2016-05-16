@@ -17,35 +17,36 @@ will be orphaned, continuing to run unsupervised as a child of the host
 init.
 
 
-Using cgroups to limit memory and CPU-share available to a container
+Using cgroups to limit memory and processes available to a container
 --------------------------------------------------------------------
 
-If cgroup support including memcg and memcg-swap is compiled into the kernel
-and the cgroup filesystem is mounted with the cpu and memory controllers
-enabled, it is straightforward to apply memory and CPU-share limits to a
-container as it is started. For example, the shell script
+If cgroup support, the memory controller and the pids controller are
+compiled into the kernel, a mounted cgroup2 filesystem can be used to apply
+memory and process-count limits to a container as it is started. For
+example, the shell script
 
   #!/bin/sh -e
+  echo +memory +pids >/sys/fs/cgroup/cgroup.subtree_control
   mkdir /sys/fs/cgroup/mycontainer
   echo $$ >/sys/fs/cgroup/mycontainer/tasks
-  echo 2G >/sys/fs/cgroup/mycontainer/memory.limit_in_bytes
-  echo 2G >/sys/fs/cgroup/mycontainer/memory.memsw.limit_in_bytes
-  echo 1000 >sys/fs/cgroup/mycontainer/cpu.shares
+  echo 2G >/sys/fs/cgroup/mycontainer/memory.high
+  echo 3G >/sys/fs/cgroup/mycontainer/memory.max
+  echo 2G >/sys/fs/cgroup/mycontainer/memory.swap.max
+  echo 256 >sys/fs/cgroup/mycontainer/pids.max
   exec contain [...]
 
-applies a limit of 2GB virtual memory and a CPU-share of 1000 before
-starting the container. It might also be useful to apply a
-memory.kmem.limit_in_bytes setting to prevent a container from using
-excessive amounts of kernel memory.
+applies a best-efforts limit of 2GB memory with a hard limit of 3GB. Swap
+usage is restricted to at most 2G, and no more than 256 process can be
+forked within the container.
 
-Note that to set the virtual memory limit in memory.memsw.limit_in_bytes, it
-is first necessary to set a smaller or equal physical memory limit in
-memory.limit_in_bytes.
+In addition, if contain is built and run on Linux 4.6 or later, a cgroup
+namespace will be used to virtualise the container's view of the cgroup
+hierarchy in /sys/fs/cgroup and /proc/*/cgroup. /sys/fs/cgroup/mycontainer
+will appear as the root of the hierarchy at /sys/fs/cgroup within the
+container.
 
-When a container lives inside a memory cgroup, memory.memsw.usage_in_bytes
-gives a measure of the total virtual memory in use by the container, and
-memory.usage_in_bytes measures its physical memory footprint. The accounting
-policy is explained in linux/kernel/Documentation/cgroups/memory.txt.
+See linux/kernel/Documentation/cgroup-v2.txt for detailed info on the
+available controllers and configuration parameters.
 
 
 Troubleshooting

@@ -99,10 +99,10 @@ filesystem, running CMD as PID 1 within that container. If unspecified, CMD
 defaults to /bin/sh to start a shell, so to fully boot a distribution,
 specify CMD as /bin/init or /sbin/init.
 
-The container init process is isolated in new user, mount, IPC, UTS, and PID
-namespaces. A synthetic /dev with device nodes bound from the host /dev is
-automatically mounted within the new mount namespace, together with standard
-/dev/pts, /proc and /sys filesystems.
+The container init process is isolated in new user, cgroup, mount, IPC, UTS,
+and PID namespaces. A synthetic /dev with device nodes bound from the host
+/dev is automatically mounted within the new mount namespace, together with
+standard /dev/pts, /proc and /sys filesystems.
 
 Because it runs in its own user namespace, users and groups seen inside a
 container are not the same as the underlying credentials visible for the
