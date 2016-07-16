@@ -1,6 +1,6 @@
 #define _GNU_SOURCE
 #include <errno.h>
-#include <error.h>
+#include <err.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,7 +15,7 @@ char *append(char **destination, const char *format, ...) {
 
   va_start(args, format);
   if (vasprintf(&extra, format, args) < 0)
-    error(1, errno, "asprintf");
+    err(1, "asprintf");
   va_end(args);
 
   if (*destination == NULL) {
@@ -24,7 +24,7 @@ char *append(char **destination, const char *format, ...) {
   }
 
   if (asprintf(&result, "%s%s", *destination, extra) < 0)
-      error(1, errno, "asprintf");
+      err(1, "asprintf");
   free(*destination);
   free(extra);
   *destination = result;
@@ -37,7 +37,7 @@ char *string(const char *format, ...) {
 
   va_start(args, format);
   if (vasprintf(&result, format, args) < 0)
-    error(1, errno, "asprintf");
+    err(1, "asprintf");
   va_end(args);
   return result;
 }
@@ -46,9 +46,9 @@ char *tmpdir(void) {
   char *dir;
 
   if (!(dir = strdup("/tmp/XXXXXX")))
-    error(1, errno, "strdup");
+    err(1, "strdup");
   else if (!mkdtemp(dir))
-    error(1, 0, "Failed to create temporary directory");
+    errx(1, "Failed to create temporary directory");
   return dir;
 }
 
@@ -56,7 +56,7 @@ void waitforexit(pid_t child) {
   int status;
 
   if (waitpid(child, &status, 0) < 0)
-    error(1, errno, "waitpid");
+    err(1, "waitpid");
   else if (WEXITSTATUS(status) != EXIT_SUCCESS)
     exit(WEXITSTATUS(status));
 }
@@ -65,7 +65,7 @@ void waitforstop(pid_t child) {
   int status;
 
   if (waitpid(child, &status, WUNTRACED) < 0)
-    error(1, errno, "waitpid");
+    err(1, "waitpid");
   if (!WIFSTOPPED(status))
     exit(WEXITSTATUS(status));
 }
