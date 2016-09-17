@@ -1,6 +1,5 @@
 #define _GNU_SOURCE
 #include <errno.h>
-#include <error.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>

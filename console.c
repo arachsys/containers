@@ -1,6 +1,5 @@
 #define _GNU_SOURCE
 #include <errno.h>
-#include <error.h>
 #include <fcntl.h>
 #include <limits.h>
 #include <poll.h>

@@ -1,6 +1,5 @@
 #define _GNU_SOURCE
 #include <errno.h>
-#include <error.h>
 #include <fcntl.h>
 #include <grp.h>
 #include <sched.h>
@@ -15,7 +14,7 @@
 #include <sys/types.h>
 #include "contain.h"
 
-void usage(char *progname) {
+void usage(void) {
   fprintf(stderr, "\
 Usage: %s [OPTIONS] DIR [CMD [ARG]...]\n\
 Options:\n\
@@ -35,6 +34,7 @@ int main(int argc, char **argv) {
   int hostnet = 0, master, option, stdio = 0;
   pid_t child, parent;
 
+  progname = argv[0];
   while ((option = getopt(argc, argv, "+:cg:i:no:u:")) > 0)
     switch (option) {
       case 'c':
@@ -56,11 +56,11 @@ int main(int argc, char **argv) {
         uidmap = optarg;
         break;
       default:
-        usage(argv[0]);
+        usage();
     }
 
   if (argc <= optind)
-    usage(argv[0]);
+    usage();
 
   parent = getpid();
   switch (child = fork()) {

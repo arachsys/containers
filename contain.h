@@ -11,10 +11,13 @@
 #define idname(type) ((type) == GID ? "GID" : "UID")
 #define subpath(type) ((type) == GID ? "/etc/subgid" : "/etc/subuid")
 
+extern char *progname;
+
 extern char *append(char **destination, const char *format, ...);
 extern void createroot(char *src, int console, char *helper);
 extern void denysetgroups(pid_t pid);
 extern void enterroot(void);
+extern void error(int status, int errnum, char *format, ...);
 extern int getconsole(void);
 extern void mountproc(void);
 extern void mountsys(void);

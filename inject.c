@@ -1,7 +1,6 @@
 #define _GNU_SOURCE
 #include <dirent.h>
 #include <errno.h>
-#include <error.h>
 #include <fcntl.h>
 #include <grp.h>
 #include <sched.h>
@@ -60,7 +59,7 @@ void join(pid_t pid, char *type) {
   free(path);
 }
 
-void usage(char *progname) {
+void usage(void) {
   fprintf(stderr, "Usage: %s PID [CMD [ARG]...]\n", progname);
   exit(64);
 }
@@ -73,12 +72,13 @@ int main(int argc, char **argv) {
   DIR *dir;
   FILE *file;
 
+  progname = argv[0];
   if (argc < 2)
-    usage(argv[0]);
+    usage();
 
   parent = strtol(argv[1], &end, 10);
   if (end == argv[1] || *end)
-    usage(argv[0]);
+    usage();
 
   if (geteuid() != getuid())
     error(1, 0, "setuid installation is unsafe");

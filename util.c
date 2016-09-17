@@ -1,6 +1,5 @@
 #define _GNU_SOURCE
 #include <errno.h>
-#include <error.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,6 +7,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include "contain.h"
+
+char *progname;
 
 char *append(char **destination, const char *format, ...) {
   char *extra, *result;
@@ -29,6 +30,21 @@ char *append(char **destination, const char *format, ...) {
   free(extra);
   *destination = result;
   return result;
+}
+
+void error(int status, int errnum, char *format, ...) {
+  va_list args;
+
+  fprintf(stderr, "%s: ", progname);
+  va_start(args, format);
+  vfprintf(stderr, format, args);
+  va_end(args);
+  if (errnum != 0)
+    fprintf(stderr, ": %s\n", strerror(errnum));
+  else
+    fputc('\n', stderr);
+  if (status != 0)
+    exit(status);
 }
 
 char *string(const char *format, ...) {
