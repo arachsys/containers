@@ -77,32 +77,37 @@ static char *rangeitem(char *range, unsigned *start, unsigned *length) {
 }
 
 static char *readranges(int type) {
-  char *line = NULL, *range, *user;
+  char *line = NULL, *entry, *range, *user;
   size_t end, size;
   struct passwd *passwd;
-  unsigned length, start;
+  uid_t uid;
+  unsigned int length, start;
   FILE *file;
 
   range = string("%u:1", getid(type));
   if (!(file = fopen(subpath(type), "r")))
     return range;
 
+  uid = getuid();
   user = getenv("USER");
   user = user ? user : getenv("LOGNAME");
   user = user ? user : getlogin();
-  if (!user || !(passwd = getpwnam(user)) || passwd->pw_uid != getuid()) {
-    if (!(passwd = getpwuid(getuid())))
+  if (!user || !(passwd = getpwnam(user)) || passwd->pw_uid != uid) {
+    if (!(passwd = getpwuid(uid)))
       error(1, 0, "Failed to validate your username");
     user = passwd->pw_name;
   }
   endpwent();
 
   while (getline(&line, &size, file) >= 0) {
-    if (strncmp(line, user, strlen(user)))
+    if (strtol(line, &entry, 10) != uid || entry == line) {
+      if (strncmp(line, user, strlen(user)))
+        continue;
+      entry = line + strlen(user);
+    }
+    if (sscanf(entry, ":%u:%u%zn", &start, &length, &end) < 2)
       continue;
-    if (sscanf(line + strlen(user), ":%u:%u%zn", &start, &length, &end) < 2)
-      continue;
-    if (strchr(":\n", line[end + strlen(user) + 1]))
+    if (strchr(":\n", entry[end + 1]))
       append(&range, ",%u:%u", start, length);
   }
 
