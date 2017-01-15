@@ -5,7 +5,7 @@ DESTDIR =
 CC = gcc
 CFLAGS = -g -std=gnu99 -Os -Wall -Wextra
 
-BINARIES = inject
+BINARIES = inject list-containers
 SUIDROOT = contain pseudo
 
 all: ${BINARIES} ${SUIDROOT}
@@ -15,6 +15,8 @@ contain: contain.o console.o map.o mount.o util.o
 inject: inject.o map.o util.o
 
 pseudo: pseudo.o map.o util.o
+
+list-containers: list-containers.o util.o
 
 clean:
 	rm -f -- ${BINARIES} ${SUIDROOT} tags *.o
