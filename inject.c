@@ -48,12 +48,12 @@ void join(pid_t pid, char *type) {
 
   if ((fd = open(path, O_RDONLY)) >= 0) {
     if (syscall(__NR_setns, fd, 0) < 0 && strcmp(type, "user") == 0)
-      error(1, 0, "Failed to join user namespace");
+      die(0, "Failed to join user namespace");
     close(fd);
   } else if (errno != ENOENT) {
-    error(1, 0, "PID %u does not belong to you", pid);
+    die(0, "PID %u does not belong to you", pid);
   } else if (strcmp(type, "user") == 0) {
-    error(1, 0, "PID %u not found or user namespace unavailable", pid);
+    die(0, "PID %u not found or user namespace unavailable", pid);
   }
 
   free(path);
@@ -81,9 +81,9 @@ int main(int argc, char **argv) {
     usage();
 
   if (geteuid() != getuid())
-    error(1, 0, "setuid installation is unsafe");
+    die(0, "setuid installation is unsafe");
   else if (getegid() != getgid())
-    error(1, 0, "setgid installation is unsafe");
+    die(0, "setgid installation is unsafe");
 
   join(parent, "user");
   setgid(0);
@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
   setuid(0);
 
   if (!(dir = opendir("/proc")))
-    error(1, 0, "Failed to list processes");
+    die(0, "Failed to list processes");
   while (child < 0 && (entry = readdir(dir))) {
     pid = strtol(entry->d_name, &end, 10);
     if (end == entry->d_name || *end)
@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
     free(item);
 
   if (child < 0)
-    error(1, 0, "PID %u is not a container supervisor", parent);
+    die(0, "PID %u is not a container supervisor", parent);
 
   join(child, "cgroup");
   join(child, "ipc");
@@ -122,11 +122,11 @@ int main(int argc, char **argv) {
   join(child, "mnt");
 
   if (chdir("/") < 0)
-    error(1, 0, "Failed to enter container root directory");
+    die(0, "Failed to enter container root directory");
 
   switch (child = fork()) {
     case -1:
-      error(1, errno, "fork");
+      die(errno, "fork");
     case 0:
       if (argv[2])
         execvp(argv[2], argv + 2);
@@ -134,7 +134,7 @@ int main(int argc, char **argv) {
         execl(getenv("SHELL"), getenv("SHELL"), NULL);
       else
         execl(SHELL, SHELL, NULL);
-      error(1, errno, "exec");
+      die(errno, "exec");
   }
 
   waitforexit(child);

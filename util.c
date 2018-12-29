@@ -16,7 +16,7 @@ char *append(char **destination, const char *format, ...) {
 
   va_start(args, format);
   if (vasprintf(&extra, format, args) < 0)
-    error(1, errno, "asprintf");
+    die(errno, "asprintf");
   va_end(args);
 
   if (*destination == NULL) {
@@ -25,14 +25,14 @@ char *append(char **destination, const char *format, ...) {
   }
 
   if (asprintf(&result, "%s%s", *destination, extra) < 0)
-      error(1, errno, "asprintf");
+      die(errno, "asprintf");
   free(*destination);
   free(extra);
   *destination = result;
   return result;
 }
 
-void error(int status, int errnum, char *format, ...) {
+void die(int errnum, char *format, ...) {
   va_list args;
 
   fprintf(stderr, "%s: ", progname);
@@ -43,8 +43,7 @@ void error(int status, int errnum, char *format, ...) {
     fprintf(stderr, ": %s\n", strerror(errnum));
   else
     fputc('\n', stderr);
-  if (status != 0)
-    exit(status);
+  exit(EXIT_FAILURE);
 }
 
 char *string(const char *format, ...) {
@@ -53,7 +52,7 @@ char *string(const char *format, ...) {
 
   va_start(args, format);
   if (vasprintf(&result, format, args) < 0)
-    error(1, errno, "asprintf");
+    die(errno, "asprintf");
   va_end(args);
   return result;
 }
@@ -62,9 +61,9 @@ char *tmpdir(void) {
   char *dir;
 
   if (!(dir = strdup("/tmp/XXXXXX")))
-    error(1, errno, "strdup");
+    die(errno, "strdup");
   else if (!mkdtemp(dir))
-    error(1, 0, "Failed to create temporary directory");
+    die(0, "Failed to create temporary directory");
   return dir;
 }
 
@@ -72,7 +71,7 @@ void waitforexit(pid_t child) {
   int status;
 
   if (waitpid(child, &status, 0) < 0)
-    error(1, errno, "waitpid");
+    die(errno, "waitpid");
   else if (WEXITSTATUS(status) != EXIT_SUCCESS)
     exit(WEXITSTATUS(status));
 }
@@ -81,7 +80,7 @@ void waitforstop(pid_t child) {
   int status;
 
   if (waitpid(child, &status, WUNTRACED) < 0)
-    error(1, errno, "waitpid");
+    die(errno, "waitpid");
   if (!WIFSTOPPED(status))
     exit(WEXITSTATUS(status));
 }

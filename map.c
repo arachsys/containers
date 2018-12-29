@@ -16,9 +16,9 @@ void denysetgroups(pid_t pid) {
 
   path = string("/proc/%d/setgroups", pid);
   if ((fd = open(path, O_WRONLY)) < 0)
-    error(1, 0, "Failed to disable setgroups() in container");
+    die(0, "Failed to disable setgroups() in container");
   else if (write(fd, text, strlen(text)) != (ssize_t) strlen(text))
-    error(1, 0, "Failed to disable setgroups() in container");
+    die(0, "Failed to disable setgroups() in container");
   close(fd);
   free(path);
 }
@@ -34,16 +34,16 @@ static char *getmap(pid_t pid, int type) {
   else
     path = string("/proc/%d/%s", pid, idfile(type));
   if (!(file = fopen(path, "r")))
-    error(1, 0, "Cannot read %s", path);
+    die(0, "Cannot read %s", path);
 
   while (getline(&line, &size, file) >= 0) {
     if (sscanf(line, " %u %u %u", &first, &lower, &count) != 3)
-      error(1, 0, "Invalid map data in %s", path);
+      die(0, "Invalid map data in %s", path);
     append(&result, "%s%u:%u:%u", result ? "," : "", first, lower, count);
   }
 
   if (!result)
-    error(1, 0, "Invalid map data in %s", path);
+    die(0, "Invalid map data in %s", path);
 
   fclose(file);
   free(line);
@@ -60,7 +60,7 @@ static char *mapitem(char *map, unsigned *first, unsigned *lower,
   if (map == NULL || *map == '\0')
     return NULL;
   if (sscanf(map, "%u:%u:%u%zn", first, lower, count, &skip) < 3)
-    error(1, 0, "Invalid ID map '%s'", map);
+    die(0, "Invalid ID map '%s'", map);
   return map + skip;
 }
 
@@ -72,7 +72,7 @@ static char *rangeitem(char *range, unsigned *start, unsigned *length) {
   if (range == NULL || *range == '\0')
     return NULL;
   if (sscanf(range, "%u:%u%zn", start, length, &skip) < 2)
-    error(1, 0, "Invalid ID range '%s'", range);
+    die(0, "Invalid ID range '%s'", range);
   return range + skip;
 }
 
@@ -94,7 +94,7 @@ static char *readranges(int type) {
   user = user ? user : getlogin();
   if (!user || !(passwd = getpwnam(user)) || passwd->pw_uid != uid) {
     if (!(passwd = getpwuid(uid)))
-      error(1, 0, "Failed to validate your username");
+      die(0, "Failed to validate your username");
     user = passwd->pw_name;
   }
   endpwent();
@@ -130,7 +130,7 @@ static char *rootdefault(int type) {
   while ((cursor = mapitem(cursor, &first, &lower, &count))) {
     if (first == 0) {
       if (count == 1 && first >= last)
-        error(1, 0, "No unprivileged %s available\n", idname(type));
+        die(0, "No unprivileged %s available\n", idname(type));
       first++, lower++, count--;
     }
 
@@ -188,7 +188,7 @@ static void validate(char *range, unsigned first, unsigned count) {
         validate(range, start + length, first + count - start - length);
       return;
     }
-  error(1, 0, "Cannot map onto IDs that are not delegated to you");
+  die(0, "Cannot map onto IDs that are not delegated to you");
 }
 
 static void verifymap(char *map, char *range) {
@@ -216,9 +216,9 @@ void writemap(pid_t pid, int type, char *map) {
 
   path = string("/proc/%d/%s", pid, idfile(type));
   if ((fd = open(path, O_WRONLY)) < 0)
-    error(1, 0, "Failed to set container %s map", idname(type));
+    die(0, "Failed to set container %s map", idname(type));
   else if (write(fd, text, strlen(text)) != (ssize_t) strlen(text))
-    error(1, 0, "Failed to set container %s map", idname(type));
+    die(0, "Failed to set container %s map", idname(type));
 
   close(fd);
   free(path);

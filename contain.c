@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
   parent = getpid();
   switch (child = fork()) {
     case -1:
-      error(1, errno, "fork");
+      die(errno, "fork");
     case 0:
       raise(SIGSTOP);
       if (geteuid() != 0)
@@ -75,36 +75,36 @@ int main(int argc, char **argv) {
 
       if (outside) {
         if (setgid(getgid()) < 0 || setuid(getuid()) < 0)
-          error(1, 0, "Failed to drop privileges");
+          die(0, "Failed to drop privileges");
         execlp(SHELL, SHELL, "-c", outside, NULL);
-        error(1, errno, "exec %s", outside);
+        die(errno, "exec %s", outside);
       }
 
       exit(EXIT_SUCCESS);
   }
 
   if (setgid(getgid()) < 0 || setuid(getuid()) < 0)
-    error(1, 0, "Failed to drop privileges");
+    die(0, "Failed to drop privileges");
 
   if (unshare(CLONE_NEWUSER) < 0)
-    error(1, 0, "Failed to unshare user namespace");
+    die(0, "Failed to unshare user namespace");
 
 #ifdef CLONE_NEWCGROUP
   if (unshare(CLONE_NEWCGROUP) < 0)
-    error(1, 0, "Failed to unshare cgroup namespace");
+    die(0, "Failed to unshare cgroup namespace");
 #endif
 
   if (unshare(CLONE_NEWIPC) < 0)
-    error(1, 0, "Failed to unshare IPC namespace");
+    die(0, "Failed to unshare IPC namespace");
 
   if (!hostnet && unshare(CLONE_NEWNET) < 0)
-    error(1, 0, "Failed to unshare network namespace");
+    die(0, "Failed to unshare network namespace");
 
   if (unshare(CLONE_NEWNS) < 0)
-    error(1, 0, "Failed to unshare mount namespace");
+    die(0, "Failed to unshare mount namespace");
 
   if (unshare(CLONE_NEWUTS) < 0)
-    error(1, 0, "Failed to unshare UTS namespace");
+    die(0, "Failed to unshare UTS namespace");
 
   waitforstop(child);
   kill(child, SIGCONT);
@@ -120,7 +120,7 @@ int main(int argc, char **argv) {
   unshare(CLONE_NEWPID);
   switch (child = fork()) {
     case -1:
-      error(1, errno, "fork");
+      die(errno, "fork");
     case 0:
       mountproc();
       if (!hostnet)
@@ -139,7 +139,7 @@ int main(int argc, char **argv) {
         execv(argv[optind + 1], argv + optind + 1);
       else
         execl(SHELL, SHELL, NULL);
-      error(1, errno, "exec");
+      die(errno, "exec");
   }
 
   return supervise(child, master);

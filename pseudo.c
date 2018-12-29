@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
   parent = getpid();
   switch (child = fork()) {
     case -1:
-      error(1, errno, "fork");
+      die(errno, "fork");
     case 0:
       raise(SIGSTOP);
       if (geteuid() != 0)
@@ -52,10 +52,10 @@ int main(int argc, char **argv) {
   }
 
   if (setgid(getgid()) < 0 || setuid(getuid()) < 0)
-    error(1, 0, "Failed to drop privileges");
+    die(0, "Failed to drop privileges");
 
   if (unshare(CLONE_NEWUSER) < 0)
-    error(1, errno, "Failed to unshare user namespace");
+    die(errno, "Failed to unshare user namespace");
 
   waitforstop(child);
   kill(child, SIGCONT);
@@ -72,6 +72,6 @@ int main(int argc, char **argv) {
   else
     execl(SHELL, SHELL, NULL);
 
-  error(1, errno, "exec");
+  die(errno, "exec");
   return EXIT_FAILURE;
 }

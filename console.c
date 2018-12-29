@@ -20,7 +20,7 @@ int getconsole(void) {
   int master, null;
 
   if ((null = open("/dev/null", O_RDWR)) < 0)
-    error(1, 0, "Failed to open /dev/null");
+    die(0, "Failed to open /dev/null");
 
   if (fcntl(STDIN_FILENO, F_GETFD) < 0)
     dup2(null, STDIN_FILENO);
@@ -35,7 +35,7 @@ int getconsole(void) {
         close(null);
 
   if ((master = posix_openpt(O_RDWR | O_NOCTTY)) < 0)
-    error(1, 0, "Failed to allocate a console pseudo-terminal");
+    die(0, "Failed to allocate a console pseudo-terminal");
   grantpt(master);
   unlockpt(master);
   return master;
@@ -47,7 +47,7 @@ static void rawmode(void) {
   if (!isatty(STDIN_FILENO))
     return;
   if (tcgetattr(STDIN_FILENO, &termios) < 0)
-    error(1, errno, "tcgetattr");
+    die(errno, "tcgetattr");
   cfmakeraw(&termios);
   tcsetattr(STDIN_FILENO, TCSANOW, &termios);
 }
@@ -59,7 +59,7 @@ static void restoremode(void) {
 
 static void savemode(void) {
   if (isatty(STDIN_FILENO) && tcgetattr(STDIN_FILENO, &saved) < 0)
-    error(1, errno, "tcgetattr");
+    die(errno, "tcgetattr");
 }
 
 void setconsole(char *name) {
@@ -69,11 +69,11 @@ void setconsole(char *name) {
   setsid();
 
   if ((console = open(name, O_RDWR)) < 0)
-    error(1, 0, "Failed to open console in container");
+    die(0, "Failed to open console in container");
   ioctl(console, TIOCSCTTY, NULL);
 
   if (tcgetattr(console, &termios) < 0)
-    error(1, errno, "tcgetattr");
+    die(errno, "tcgetattr");
   termios.c_iflag |= IGNBRK | IUTF8;
   tcsetattr(console, TCSANOW, &termios);
 
@@ -95,7 +95,7 @@ int supervise(pid_t child, int console) {
 
   if (console < 0) {
     if (waitpid(child, &status, 0) < 0)
-      error(1, errno, "waitpid");
+      die(errno, "waitpid");
     return WIFEXITED(status) ? WEXITSTATUS(status) : EXIT_FAILURE;
   }
 
@@ -103,7 +103,7 @@ int supervise(pid_t child, int console) {
   sigaddset(&mask, SIGCHLD);
   sigprocmask(SIG_BLOCK, &mask, NULL);
   if ((signals = signalfd(-1, &mask, 0)) < 0)
-    error(1, errno, "signalfd");
+    die(errno, "signalfd");
 
   if (waitpid(child, &status, WNOHANG) > 0)
     if (WIFEXITED(status) || WIFSIGNALED(status))
@@ -125,33 +125,33 @@ int supervise(pid_t child, int console) {
   while (1) {
     if (poll(fds, 3, -1) < 0)
         if (errno != EAGAIN && errno != EINTR)
-          error(1, errno, "poll");
+          die(errno, "poll");
 
     if (fds[0].revents & POLLIN) {
       if ((length = read(console, buffer, sizeof(buffer))) < 0)
         if (errno != EAGAIN && errno != EINTR)
-          error(1, errno, "read");
+          die(errno, "read");
       for (offset = 0; length > 0; offset += count, length -= count)
         while ((count = write(STDOUT_FILENO, buffer + offset, length)) < 0)
           if (errno != EAGAIN && errno != EINTR)
-            error(1, errno, "write");
+            die(errno, "write");
     }
 
     if (fds[1].revents & (POLLHUP | POLLIN)) {
       if ((length = read(STDIN_FILENO, buffer, sizeof(buffer))) == 0)
         fds[1].events = 0;
       else if (length < 0 && errno != EAGAIN && errno != EINTR)
-        error(1, errno, "read");
+        die(errno, "read");
       for (offset = 0; length > 0; offset += count, length -= count)
         while ((count = write(console, buffer + offset, length)) < 0)
           if (errno != EAGAIN && errno != EINTR)
-            error(1, errno, "write");
+            die(errno, "write");
     }
 
     if (fds[2].revents & POLLIN) {
       if (read(signals, buffer, sizeof(buffer)) < 0)
         if (errno != EAGAIN && errno != EINTR)
-          error(1, errno, "read");
+          die(errno, "read");
       if (waitpid(child, &status, WNOHANG) > 0)
         if (WIFEXITED(status) || WIFSIGNALED(status))
           break;
@@ -167,7 +167,7 @@ int supervise(pid_t child, int console) {
     for (offset = 0; length > 0; offset += count, length -= count)
       while ((count = write(STDOUT_FILENO, buffer + offset, length)) < 0)
         if (errno != EAGAIN && errno != EINTR)
-          error(1, errno, "write");
+          die(errno, "write");
   }
 
   return WIFEXITED(status) ? WEXITSTATUS(status) : EXIT_FAILURE;
