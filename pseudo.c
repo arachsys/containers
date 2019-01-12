@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <sysexits.h>
 #include <unistd.h>
+#include <sys/prctl.h>
 #include "contain.h"
 
 void usage() {
@@ -53,6 +54,7 @@ int main(int argc, char **argv) {
 
   if (setgid(getgid()) < 0 || setuid(getuid()) < 0)
     die(0, "Failed to drop privileges");
+  prctl(PR_SET_DUMPABLE, 1);
 
   if (unshare(CLONE_NEWUSER) < 0)
     die(errno, "Failed to unshare user namespace");

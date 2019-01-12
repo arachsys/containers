@@ -153,11 +153,11 @@ stdout and stderr of inject are all inherited by the command to be run.
 
 The container supervisor PID (i.e. that of contain itself) should be given
 to inject, not the PID of the descendant init process. The inject utility
-will only work if process specified has a child with "container=contain"
+will only work if the process specified has a child with "container=contain"
 in its environment, which it assumes to be the container init.
 
-Linux allows an unprivileged user to join the user namespace of any
-container started by his UID, so inject need not be installed setuid even if
+Linux allows an unprivileged user to join the user namespace of any process
+he can dump or ptrace, so inject need not be installed setuid even if
 contain and pseudo are setuid root. It will refuse to run if it detects
 setuid/setgid operation.
 

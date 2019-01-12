@@ -10,6 +10,7 @@
 #include <sysexits.h>
 #include <unistd.h>
 #include <linux/sched.h>
+#include <sys/prctl.h>
 #include <sys/syscall.h>
 #include <sys/types.h>
 #include "contain.h"
@@ -76,6 +77,7 @@ int main(int argc, char **argv) {
       if (outside) {
         if (setgid(getgid()) < 0 || setuid(getuid()) < 0)
           die(0, "Failed to drop privileges");
+        prctl(PR_SET_DUMPABLE, 1);
         execlp(SHELL, SHELL, "-c", outside, NULL);
         die(errno, "exec %s", outside);
       }
@@ -85,6 +87,7 @@ int main(int argc, char **argv) {
 
   if (setgid(getgid()) < 0 || setuid(getuid()) < 0)
     die(0, "Failed to drop privileges");
+  prctl(PR_SET_DUMPABLE, 1);
 
   if (unshare(CLONE_NEWUSER) < 0)
     die(0, "Failed to unshare user namespace");
