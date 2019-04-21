@@ -21,6 +21,7 @@ extern void enterroot(void);
 extern int getconsole(void);
 extern void mountproc(void);
 extern void mountsys(void);
+extern void seal(char **argv, char **envp);
 extern void setconsole(char *name);
 extern char *string(const char *format, ...);
 extern int supervise(pid_t child, int console);

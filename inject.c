@@ -64,7 +64,7 @@ void usage(void) {
   exit(64);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv, char **envp) {
   char *end, *item = NULL, *path;
   pid_t child = -1, parent, pid;
   size_t size;
@@ -72,6 +72,7 @@ int main(int argc, char **argv) {
   DIR *dir;
   FILE *file;
 
+  seal(argv, envp);
   progname = argv[0];
   if (argc < 2)
     usage();
