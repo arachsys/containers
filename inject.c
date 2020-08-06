@@ -119,6 +119,7 @@ int main(int argc, char **argv, char **envp) {
   join(child, "ipc");
   join(child, "net");
   join(child, "pid");
+  join(child, "time");
   join(child, "uts");
   join(child, "mnt");
 

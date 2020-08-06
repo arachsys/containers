@@ -106,6 +106,11 @@ int main(int argc, char **argv) {
   if (unshare(CLONE_NEWNS) < 0)
     die(0, "Failed to unshare mount namespace");
 
+#ifdef CLONE_NEWTIME
+  if (unshare(CLONE_NEWTIME) < 0)
+    die(0, "Failed to unshare time namespace");
+#endif
+
   if (unshare(CLONE_NEWUTS) < 0)
     die(0, "Failed to unshare UTS namespace");
 

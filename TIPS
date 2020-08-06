@@ -60,7 +60,9 @@ if support for that is not available in the kernel.
 
 To run these tools you need to be running Linux 3.8 or later with
 
+  CONFIG_CGROUPS=y
   CONFIG_UTS_NS=y
+  CONFIG_TIME_NS=y
   CONFIG_IPC_NS=y
   CONFIG_USER_NS=y
   CONFIG_PID_NS=y
