@@ -1,4 +1,5 @@
 #define _GNU_SOURCE
+#include <err.h>
 #include <errno.h>
 #include <grp.h>
 #include <sched.h>
@@ -10,7 +11,7 @@
 #include <sys/prctl.h>
 #include "contain.h"
 
-void usage() {
+void usage(const char *progname) {
   fprintf(stderr, "\
 Usage: %s [OPTIONS] [CMD [ARG]...]\n\
 Options:\n\
@@ -26,7 +27,6 @@ int main(int argc, char **argv) {
   int option;
   pid_t child, parent;
 
-  progname = argv[0];
   while ((option = getopt(argc, argv, "+:g:u:")) > 0)
     switch (option) {
       case 'g':
@@ -36,13 +36,13 @@ int main(int argc, char **argv) {
         uidmap = optarg;
         break;
       default:
-        usage();
+        usage(argv[0]);
     }
 
   parent = getpid();
   switch (child = fork()) {
     case -1:
-      die(errno, "fork");
+      err(EXIT_FAILURE, "fork");
     case 0:
       raise(SIGSTOP);
       if (geteuid() != 0)
@@ -53,11 +53,11 @@ int main(int argc, char **argv) {
   }
 
   if (setgid(getgid()) < 0 || setuid(getuid()) < 0)
-    die(0, "Failed to drop privileges");
+    errx(EXIT_FAILURE, "Failed to drop privileges");
   prctl(PR_SET_DUMPABLE, 1);
 
   if (unshare(CLONE_NEWUSER) < 0)
-    die(errno, "Failed to unshare user namespace");
+    errx(EXIT_FAILURE, "Failed to unshare user namespace");
 
   waitforstop(child);
   kill(child, SIGCONT);
@@ -74,6 +74,6 @@ int main(int argc, char **argv) {
   else
     execl(SHELL, SHELL, NULL);
 
-  die(errno, "exec");
+  err(EXIT_FAILURE, "exec");
   return EXIT_FAILURE;
 }

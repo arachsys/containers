@@ -1,4 +1,5 @@
 #define _GNU_SOURCE
+#include <err.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -17,7 +18,7 @@ static void bindnode(char *src, char *dst) {
   if ((fd = open(dst, O_WRONLY | O_CREAT, 0600)) >= 0)
     close(fd);
   if (mount(src, dst, NULL, MS_BIND, NULL) < 0)
-    die(0, "Failed to bind %s into new /dev filesystem", src);
+    errx(EXIT_FAILURE, "Failed to bind %s into new /dev filesystem", src);
 }
 
 void cleanup(void) {
@@ -35,18 +36,18 @@ void createroot(char *src, int console, char *helper) {
   atexit(cleanup);
 
   if (mount(src, root, NULL, MS_BIND | MS_REC, NULL) < 0)
-    die(0, "Failed to bind new root filesystem");
+    errx(EXIT_FAILURE, "Failed to bind new root filesystem");
   else if (chdir(root) < 0)
-    die(0, "Failed to enter new root filesystem");
+    errx(EXIT_FAILURE, "Failed to enter new root filesystem");
 
   mask = umask(0);
   mkdir("dev" , 0755);
   if (mount("tmpfs", "dev", "tmpfs", 0, "mode=0755") < 0)
-    die(0, "Failed to mount /dev tmpfs in new root filesystem");
+    errx(EXIT_FAILURE, "Failed to mount /dev tmpfs in new root filesystem");
 
   mkdir("dev/pts", 0755);
   if (mount("devpts", "dev/pts", "devpts", 0, "newinstance,ptmxmode=666") < 0)
-    die(0, "Failed to mount /dev/pts in new root filesystem");
+    errx(EXIT_FAILURE, "Failed to mount /dev/pts in new root filesystem");
 
   mkdir("dev/tmp", 0755);
   umask(mask);
@@ -64,10 +65,10 @@ void createroot(char *src, int console, char *helper) {
   if (helper)
     switch (child = fork()) {
       case -1:
-        die(errno, "fork");
+        err(EXIT_FAILURE, "fork");
       case 0:
         execlp(SHELL, SHELL, "-c", helper, NULL);
-        die(errno, "exec %s", helper);
+        err(EXIT_FAILURE, "exec %s", helper);
       default:
         waitforexit(child);
     }
@@ -75,7 +76,7 @@ void createroot(char *src, int console, char *helper) {
 
 void enterroot(void) {
   if (syscall(__NR_pivot_root, ".", "dev/tmp") < 0)
-    die(0, "Failed to pivot into new root filesystem");
+    errx(EXIT_FAILURE, "Failed to pivot into new root filesystem");
 
   if (chdir("/dev/tmp") >= 0) {
     while (*root == '/')
@@ -86,7 +87,7 @@ void enterroot(void) {
   root = NULL;
 
   if (chdir("/") < 0 || umount2("/dev/tmp", MNT_DETACH) < 0)
-    die(0, "Failed to detach old root filesystem");
+    errx(EXIT_FAILURE, "Failed to detach old root filesystem");
   else
     rmdir("/dev/tmp");
 }
@@ -99,7 +100,7 @@ void mountproc(void) {
   umask(mask);
 
   if (mount("proc", "proc", "proc", 0, NULL) < 0)
-    die(0, "Failed to mount /proc in new root filesystem");
+    errx(EXIT_FAILURE, "Failed to mount /proc in new root filesystem");
 }
 
 void mountsys(void) {
@@ -110,6 +111,6 @@ void mountsys(void) {
   umask(mask);
 
   if (mount("sysfs", "sys", "sysfs", 0, NULL) < 0)
-    die(0, "Failed to mount /sys in new root filesystem");
+    errx(EXIT_FAILURE, "Failed to mount /sys in new root filesystem");
   mount("cgroup2", "sys/fs/cgroup", "cgroup2", 0, NULL);
 }
