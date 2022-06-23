@@ -1,30 +1,26 @@
-PREFIX =
-BINDIR = ${PREFIX}/bin
-DESTDIR =
+BINDIR := $(PREFIX)/bin
+CFLAGS := -Os -Wall -Wfatal-errors
 
-CC = gcc
-CFLAGS = -g -std=gnu99 -Os -Wall -Wextra
+BINARIES := inject
+SUIDROOT := contain pseudo
 
-BINARIES = inject
-SUIDROOT = contain pseudo
+%:: %.c Makefile
+	$(CC) $(CFLAGS) -o $@ $(filter %.c,$^)
 
-all: ${BINARIES} ${SUIDROOT}
+all: $(BINARIES) $(SUIDROOT)
 
-contain: contain.o console.o map.o mount.o util.o
+contain: contain.[ch] console.c map.c mount.c util.c
 
-inject: inject.o map.o util.o
+inject: contain.h inject.c map.c util.c
 
-pseudo: pseudo.o map.o util.o
+pseudo: contain.h pseudo.c map.c util.c
 
 clean:
-	rm -f -- ${BINARIES} ${SUIDROOT} tags *.o
+	rm -f $(BINARIES) $(SUIDROOT)
 
-install: ${BINARIES} ${SUIDROOT}
-	mkdir -p ${DESTDIR}${BINDIR}
-	install -s ${BINARIES} ${DESTDIR}${BINDIR}
-	install -g root -m 4755 -o root -s ${SUIDROOT} ${DESTDIR}${BINDIR}
+install: $(BINARIES) $(SUIDROOT)
+	mkdir -p $(DESTDIR)$(BINDIR)
+	install -s $(BINARIES) $(DESTDIR)$(BINDIR)
+	install -o root -g root -m 4755 -s $(SUIDROOT) $(DESTDIR)$(BINDIR)
 
-tags:
-	ctags -R
-
-.PHONY: all clean install tags
+.PHONY: all clean install
