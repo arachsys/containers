@@ -11,20 +11,20 @@
 #define idname(type) ((type) == GID ? "GID" : "UID")
 #define subpath(type) ((type) == GID ? "/etc/subgid" : "/etc/subuid")
 
-extern char *append(char **destination, const char *format, ...);
-extern void createroot(char *src, int console, char *helper);
-extern void denysetgroups(pid_t pid);
-extern void enterroot(void);
-extern int getconsole(void);
-extern void mountproc(void);
-extern void mountsys(void);
-extern void seal(char **argv, char **envp);
-extern void setconsole(char *name);
-extern char *string(const char *format, ...);
-extern int supervise(pid_t child, int console);
-extern char *tmpdir(void);
-extern void waitforstop(pid_t child);
-extern void waitforexit(pid_t child);
-extern void writemap(pid_t pid, int type, char *map);
+char *append(char **destination, const char *format, ...);
+void createroot(char *src, int console, char *helper);
+void denysetgroups(pid_t pid);
+void enterroot(void);
+int getconsole(void);
+void mountproc(void);
+void mountsys(void);
+void seal(char **argv, char **envp);
+void setconsole(char *name);
+char *string(const char *format, ...);
+int supervise(pid_t child, int console);
+char *tmpdir(void);
+void waitforstop(pid_t child);
+void waitforexit(pid_t child);
+void writemap(pid_t pid, int type, char *map);
 
 #endif

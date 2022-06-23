@@ -11,7 +11,7 @@
 #include <sys/prctl.h>
 #include "contain.h"
 
-void usage(const char *progname) {
+static void usage(const char *progname) {
   fprintf(stderr, "\
 Usage: %s [OPTIONS] [CMD [ARG]...]\n\
 Options:\n\

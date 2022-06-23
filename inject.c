@@ -15,7 +15,7 @@
 #include <sys/types.h>
 #include "contain.h"
 
-int getparent(pid_t child) {
+static int getparent(pid_t child) {
   char *end, *line = NULL, *path, *start;
   pid_t parent = -1;
   size_t size;
@@ -41,7 +41,7 @@ int getparent(pid_t child) {
   return parent;
 }
 
-void join(pid_t pid, char *type) {
+static void join(pid_t pid, char *type) {
   char *path;
   int fd;
 
@@ -60,7 +60,7 @@ void join(pid_t pid, char *type) {
   free(path);
 }
 
-void usage(const char *progname) {
+static void usage(const char *progname) {
   fprintf(stderr, "Usage: %s PID [CMD [ARG]...]\n", progname);
   exit(64);
 }

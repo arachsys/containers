@@ -16,7 +16,7 @@
 #include <sys/types.h>
 #include "contain.h"
 
-void usage(const char *progname) {
+static void usage(const char *progname) {
   fprintf(stderr, "\
 Usage: %s [OPTIONS] DIR [CMD [ARG]...]\n\
 Options:\n\

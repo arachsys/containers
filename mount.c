@@ -21,7 +21,7 @@ static void bindnode(char *src, char *dst) {
     errx(EXIT_FAILURE, "Failed to bind %s into new /dev filesystem", src);
 }
 
-void cleanup(void) {
+static void cleanup(void) {
   if (root) {
     umount2(root, MNT_DETACH);
     rmdir(root);
